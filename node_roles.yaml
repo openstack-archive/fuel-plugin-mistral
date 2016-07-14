@@ -1,0 +1,32 @@
+mistral:
+  # Role name
+  name: "Mistral"
+  # Role description
+  description: "Workflow as a Service"
+  # If primary then during orchestration this role will be
+  # separated into primary-role and role
+  has_primary: true
+  # Assign public IP to node if true
+  public_ip_required: false
+  # Weight that will be used to sort out the
+  # roles on the Fuel web UI
+  weight: 100
+  update_required:
+    - controller
+  conflicts:
+    - compute-vmware
+    - compute
+    - cinder-vmware
+    - virt
+    - base-os
+    - controller
+    - ceph-osd
+    - ironic
+    - cinder
+    - cinder-block-device
+  limits:
+    recommended: 3
+    min: 0
+  restrictions:
+    - condition: "settings:fuel-plugin-mistral.metadata.enabled == false"
+      action: hide

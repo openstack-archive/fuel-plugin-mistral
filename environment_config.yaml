@@ -1,0 +1,41 @@
+attributes:
+  metadata:
+    group: 'openstack_services'
+    label: "Mistral Settings"
+    rabbit_user: "mistral"
+  db_password:
+    label: 'Database Password'
+    description: 'Mistral Database user password'
+    weight: 30
+    type: 'password'
+    value: 'nupTgLU9a6SyFCBnsMfYH7Ag'
+    regex:
+      source: '^[\S]{8,}$'
+      error: "Password length should not be less than 8 characters"
+    restrictions:
+      - action: hide
+        condition: settings:fuel-plugin-mistral.metadata.enabled == false
+  user_password:
+    label: 'Password'
+    description: 'Password for Mistral user'
+    weight: 31
+    type: 'password'
+    value: 'NN2eNK27rPLQM2cf2JrNPnwc'
+    regex:
+      source: '^[\S]{8,}$'
+      error: "Password length should not be less than 8 characters"
+    restrictions:
+      - action: hide
+        condition: settings:fuel-plugin-mistral.metadata.enabled == false
+  rabbit_password:
+    label: 'RabbitMQ Password'
+    description: 'Mistral RabbitMQ user password'
+    weight: 32
+    type: 'password'
+    value: '9sk9rWwXWbZnxmBFfhGtrGfP'
+    regex:
+      source: '^[\S]{8,}$'
+      error: "Password length should not be less than 8 characters"
+    restrictions:
+      - action: hide
+        condition: settings:fuel-plugin-mistral.metadata.enabled == false

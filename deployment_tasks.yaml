@@ -1,0 +1,147 @@
+- id: primary-mistral
+  type: group
+  role: [primary-mistral]
+  requires: [deploy_start]
+  required_for: [deploy_end]
+  tasks: &common_tasks
+    - hiera
+    - setup_repositories
+    - fuel_pkgs
+    - globals
+    - tools
+    - logging
+    - netconfig
+    - hosts
+    - firewall
+    - ssl-keys-saving
+    - ssl-add-trust-chain
+    - ssl-dns-setup
+  parameters:
+    strategy:
+      type: one_by_one
+
+- id: mistral
+  type: group
+  role: [mistral]
+  requires: [primary-mistral]
+  required_for: [deploy_end]
+  tasks: *common_tasks
+  parameters:
+    strategy:
+      type: parallel
+
+- id: mistral-haproxy
+  version: 2.0.0
+  type: puppet
+  groups: ['primary-controller', 'controller']
+  required_for: [mistral-service]
+  requires: [primary-cluster-haproxy, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+  parameters:
+    puppet_manifest: puppet/manifests/haproxy.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 1800
+  reexecute_on:
+    - deploy_changes
+
+- id: mistral-db
+  version: 2.0.0
+  type: puppet
+  groups: ['primary-controller']
+  required_for: [mistral-service]
+  requires: [primary-database, database]
+  cross-depends:
+   - name: /(primary-)?database/
+  parameters:
+    puppet_manifest: puppet/manifests/db.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 1800
+  reexecute_on:
+    - deploy_changes
+
+- id: mistral-keystone
+  version: 2.0.0
+  type: puppet
+  groups: ['primary-controller']
+  required_for: [mistral-service]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: /(primary-)?keystone/
+  parameters:
+    puppet_manifest: puppet/manifests/keystone.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 1800
+
+- id: mistral-rabbitmq
+  version: 2.0.0
+  type: puppet
+  groups: ['primary-controller']
+  required_for: [mistral-service]
+  requires: [primary-rabbitmq, rabbitmq]
+  cross-depends:
+    - name: /(primary-)?rabbitmq/
+  parameters:
+    puppet_manifest: puppet/manifests/rabbitmq.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 1800
+
+- id: mistral-dashboard
+  version: 2.0.0
+  type: puppet
+  groups: ['primary-controller','controller']
+  required_for: [deploy_end]
+  requires: [horizon]
+  cross-depends:
+    - name: horizon
+  parameters:
+    puppet_manifest: puppet/manifests/dashboard.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 1800
+  # reexecute_on is needed for scale-down operations
+  reexecute_on:
+    - deploy_changes
+
+- id: mistral-firewall
+  version: 2.0.0
+  type: puppet
+  groups: [primary-mistral, mistral]
+  requires: [firewall]
+  required_for: [mistral-service]
+  cross-depends:
+    - name: firewall
+  parameters:
+    puppet_manifest: puppet/manifests/firewall.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
+- id: mistral-service
+  version: 2.0.0
+  type: puppet
+  groups: [primary-mistral, mistral]
+  requires: [mistral-rabbitmq, mistral-haproxy, mistral-db, mistral-keystone]
+  required_for: [deploy_end]
+  cross-depends:
+    - name: mistral-db
+    - name: mistral-keystone
+    - name: mistral-rabbitmq
+    - name: mistral-haproxy
+  cross-depended-by:
+   - name: deploy_end
+  parameters:
+    puppet_manifest: puppet/manifests/mistral.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 1800
+
+- id: update-openrc
+  version: 2.0.0
+  type: puppet
+  groups: ['primary-controller', 'controller']
+  required_for: [deploy_end]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: keystone
+  parameters:
+    puppet_manifest: puppet/manifests/update_openrc.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 120
