@@ -1,0 +1,34 @@
+# Plugin name
+name: fuel-plugin-mistral
+# Human-readable name for your plugin
+title: Mistral Service 
+# Plugin version
+version: '1.0.0'
+# Description
+description: Mistral plugin provides the functionality to deploy OpenStack mistral which provides workflow service to the cloud environment.
+# Required fuel version
+fuel_version: ['8.0']
+# Specify license of your plugin
+licenses: ['Apache License Version 2.0']
+# Specify author or company name
+authors: ['Ravikiran K', 'Praveen']
+# A link to the plugin's page
+homepage: 'https://github.com/openstack/fuel-plugin-mistral'
+# Specify a group which your plugin implements, possible options:
+# network, storage, storage::cinder, storage::glance, hypervisor,
+# equipment
+groups: []
+# Change `false` to `true` if the plugin can be installed in the environment
+# after the deployment.
+is_hotpluggable: true
+
+# The plugin is compatible with releases in the list
+releases:
+  - os: ubuntu
+    version: liberty-8.0
+    mode: ['ha']
+    deployment_scripts_path: deployment_scripts/
+    repository_path: repositories/ubuntu
+
+# Version of plugin package
+package_version: '4.0.0'
