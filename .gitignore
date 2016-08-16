@@ -1,0 +1,34 @@
+.tox
+.build
+*.pyc
+repositories/centos/*
+repositories/ubuntu/*
+build.sh
+*.rpm
+logs
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+.idea
+
+# Local example
+example_local.py
+
+# Local settings
+local_settings.py
+
+# Logs
+sys_test.log
