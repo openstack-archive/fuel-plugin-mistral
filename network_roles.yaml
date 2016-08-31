@@ -1,0 +1,4 @@
+# Unique network role name
+- id: "mistral"
+  # Role mapping to network
+  default_mapping: "management"
