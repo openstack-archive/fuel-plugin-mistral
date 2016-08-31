@@ -1,8 +1,6 @@
 .tox
 .build
 *.pyc
-repositories/centos/*
-repositories/ubuntu/*
 build.sh
 *.rpm
 logs
