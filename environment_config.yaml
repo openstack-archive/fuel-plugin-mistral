@@ -1,11 +1,21 @@
 attributes:
   metadata:
-    # Settings group can be one of "general", "security", "compute", "network",
-    # "storage", "logging", "openstack_services" and "other".
     group: 'other'
-  fuel-plugin-mistral_text:
-    value: 'Set default value'
-    label: 'Text field'
-    description: 'Description for text field'
+  db_password:
+    label: 'db_password'
+    value:
+      generator: 'password'
     weight: 25
-    type: "text"
+    type: "password"
+    restrictions:
+      - condition: "true"
+        action: "hide"
+  keystone_password:
+    label: 'Keystone password'
+    value:
+      generator: 'password'
+    weight: 25
+    type: "password"
+    restrictions:
+      - condition: "true"
+        action: "hide"
