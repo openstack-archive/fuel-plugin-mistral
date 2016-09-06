@@ -1,4 +1,4 @@
-#    Copyright 2015 Mirantis, Inc.
+#    Copyright 2016 Mirantis, Inc.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -12,16 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-class plugin_tasks {
+notice('MODULAR: fuel-plugin-mistral/haproxy.pp')
 
-  $plugin_hash = $hiera_hash('fuel-plugin-mistral', {})
-
-  $horizon_ext_file  = '/usr/share/openstack-dashboard/openstack_dashboard/local/enabled/_50_mistral.py'
-  $dashboard_version = '2.0.0'
-  $dashboard_name    = 'mistral-dashboard'
-
-  $network_metadata = hiera_hash('network_metadata')
-  $ssl_hash         = hiera_hash('use_ssl',{})  
-  $public_ssl_hash  = hiera_hash('public_ssl')
-
-}
+include plugin_tasks
+class { 'plugin_tasks::haproxy':}
