@@ -1,6 +1,6 @@
-- id: mistral_dashboard
+- id: mistral-dashboard
   type: puppet
-  role: ['primary-controller','controller']
+  groups: ['primary-controller','controller']
   requires: [deploy_start]
   version: 2.0.0
   cross-depends:
@@ -10,3 +10,30 @@
     puppet_manifest: puppet/manifests/dashboard.pp
     puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 300
+
+
+- id: mistral-haproxy
+  type: puppet
+  groups: ['primary-controller','controller', 'standalone-haproxy'] 
+  requires: [openstack-haproxy, primary-cluster-haproxy, cluster-haproxy] 
+  version: 2.0.0
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
+  parameters:
+    puppet_manifest: puppet/manifests/haproxy.pp
+    puppet_modules: pupppet/modules:/etc/puppet/modules
+    timeout: 300
+
+- id: mistral-api
+  type: puppet
+  groups: ['primary-controller','controller']
+  requires: [mistral-haproxy]
+  version: 2.0.0
+  cross-depends:
+    - name: /mistral-db/
+    - name: /mistral-keystone/
+  parameters:
+    puppet_manifest: puppet/manifests/api.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 300 
