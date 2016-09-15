@@ -1,0 +1,4 @@
+[submodule "deployment_scripts/puppet/modules/mistral"]
+	path = deployment_scripts/puppet/modules/mistral
+	url = https://github.com/openstack/puppet-mistral.git
+        branch = stable/mitaka
