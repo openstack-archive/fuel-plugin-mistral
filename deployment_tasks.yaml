@@ -1,62 +1,154 @@
-# These tasks will be merged into deployment graph. Here you
-# can specify new tasks for any roles, even built-in ones.
+# Groups
 
-- id: fuel-plugin-mistral_role
+- id: mistral
   type: group
-  role: [fuel-plugin-mistral_role]
+  role: [mistral]
+  tasks: [globals, logging, hiera, hosts, firewall, connectivity_tests, dns-client, fuel_pkgs, netconfig, tools, ntp-client, reserved_ports, ssl-add-trust-chain, ssl-keys-saving]
+  cross-depends:
+    - name: primary-controller
+    - name: controller
   parameters:
     strategy:
       type: parallel
 
-- id: fuel-plugin-mistral-deployment-puppet
+# Tasks
+
+- id: mistral-db
+  version: 2.1.0
   type: puppet
-  role: [fuel-plugin-mistral_role]
-
-# If you do not want to use task-based deployment that is introduced as experimental
-# in fuel v8.0 comment code section below this comment, uncomment two lines below it
-# and do the same for tasks below.
-
-  version: 2.0.0
+  groups: [primary-controller]
   cross-depends:
-    - name: deploy_start
-  cross-depended-by:
-    - name: deploy_end
-#  requires: [deploy_start] # version 1.0.0
-#  required_for: [deploy_end]
-
+    - name: /^(primary-)?database$/
+#  condition:
+#    yaql_exp: >
+#      changedAny($.fuel-plugin-mistral, $.mysql, $.network_metadata.vips,
+#      $.get('mysql_custom_setup_class'))
   parameters:
-    puppet_manifest: "deploy.pp"
-    puppet_modules: "."
-    timeout: 3600
+    puppet_manifest: puppet/manifests/db.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 1800
 
-#- id: fuel-plugin-mistral-post-deployment-sh
-#  type: shell
-#  role: [fuel-plugin-mistral_role]
-#  version: 2.0.0
-#  cross-depends:
-#    - name: post_deployment_start
-#  cross-depended-by:
-#    - name: post_deployment_end
-# #  requires: [post_deployment_start]
-# #  required_for: [post_deployment_end]
-#  parameters:
-#    cmd: echo post_deployment_task_executed > /tmp/post_deployment
-#    retries: 3
-#    interval: 20
-#    timeout: 180
+- id: mistral-keystone
+  version: 2.1.0
+  type: puppet
+  groups: [primary-controller]
+  cross-depends:
+    - name: primary-keystone
+      role: self
+#  condition:
+#    yaql_exp: >
+#      changedAny($.fuel-plugin-mistral, $.network_metadata.vips, $.public_ssl,
+#      $.get('use_ssl'), $.get('region', 'RegionOne'))
+  parameters:
+    puppet_manifest: puppet/manifests/keystone.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 1800
 
-#- id: fuel-plugin-mistral-pre-deployment-sh
-#  type: shell
-#  role: [fuel-plugin-mistral_role]
-#  version: 2.0.0
-#  cross-depends:
-#    - name: pre_deployment_start
-#  cross-depended-by:
-#    - name: pre_deployment_end
-# #  requires: [pre_deployment_start]
-# #  required_for: [pre_deployment_end]
-#  parameters:
-#    cmd: echo pre_deployment_task_executed > /tmp/pre_deployment
-#    retries: 3
-#    interval: 20
-#    timeout: 180
+- id: mistral-repo
+  version: 2.1.0
+  type: puppet
+  groups: [primary-controller, controller, mistral]
+  cross-depends:
+    - name: setup_repositories
+      role: self
+  parameters:
+    puppet_manifest: puppet/manifests/repo.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 360
+
+- id: mistral-conf
+  version: 2.1.0
+  type: puppet
+  groups: [primary-controller, controller, mistral]
+  cross-depends:
+    - name: mistral-repo
+      role: self
+  parameters:
+    puppet_manifest: puppet/manifests/conf.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 360
+
+- id: mistral-db-sync
+  version: 2.1.0
+  type: puppet
+  groups: [primary-controller]
+  cross-depends:
+    - name: mistral-db
+      role: self
+    - name: mistral-conf
+      role: self
+  parameters:
+    puppet_manifest: puppet/manifests/db/sync.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 360
+
+- id: mistral-api
+  version: 2.1.0
+  type: puppet
+  groups: [primary-controller, controller]
+  cross-depends:
+    - name: mistral-conf
+      role: self
+    - name: mistral-keystone
+    - name: mistral-db
+      role: primary-controller
+    - name: mistral-db-sync
+  parameters:
+    puppet_manifest: puppet/manifests/api.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 360
+
+- id: mistral-vip
+  version: 2.1.0
+  type: puppet
+  groups: [primary-controller, controller]
+  cross-depends:
+    - name: primary-cluster-haproxy
+      role: self
+    - name: mistral-api
+      role: self
+    - name: cluster-haproxy
+      role: self
+  parameters:
+    puppet_manifest: puppet/manifests/vip.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 360
+
+- id: mistral-dashboard
+  version: 2.1.0
+  type: puppet
+  groups: [primary-controller, controller]
+  cross-depends:
+    - name: /.*horizon.*/
+      role: self
+  parameters:
+    puppet_manifest: puppet/manifests/dashboard.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 360
+
+- id: mistral-engine
+  version: 2.1.0
+  type: puppet
+  groups: [mistral]
+  cross-depends:
+    - name: mistral-conf
+      role: self
+    - name: mistral-db-sync
+  parameters:
+    puppet_manifest: puppet/manifests/engine.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 360
+
+- id: mistral-executor
+  version: 2.1.0
+  type: puppet
+  groups: [mistral]
+  cross-depends:
+    - name: mistral-conf
+      role: self
+    - name: mistral-db-sync
+  parameters:
+    puppet_manifest: puppet/manifests/executor.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 360
+
