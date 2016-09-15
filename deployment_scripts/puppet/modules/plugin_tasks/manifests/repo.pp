@@ -16,25 +16,9 @@ class plugin_tasks::repo {
 
   include apt
 
-  apt::key {'fuel-infra':
-    id     => '3E5CBCC6DF05CD6558A75DB1BCE5CC461FA22B08',
-    source => 'http://perestroika-repo-tst.infra.mirantis.net/mos-repos/ubuntu/9.0/archive-mos9.0.key',
-
-  }
-
-  # Temp repo
-  apt::source {'mos-proposed':
-    location => 'http://perestroika-repo-tst.infra.mirantis.net/mos-repos/ubuntu/9.0',
-    release  => 'mos9.0-proposed',
-    repos    => 'main',
-  }
-
-  apt::pin { 'mos-proposed':
-    priority        => 1200,
-    release         => 'mos9.0-proposed',
-    codename        => 'mos9.0',
-    originator      => 'Mirantis',
-    label           => 'mos9.0',
+  apt::pin { 'fuel-plugin-mistral':
+    priority        => 1050,
+    label           => 'fuel-plugin-mistral',
   }
 
 }
