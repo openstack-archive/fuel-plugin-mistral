@@ -144,7 +144,7 @@ class plugin_tasks {
   $use_syslog    = hiera('use_syslog', true)
   $use_stderr    = hiera('use_stderr', false)
   $log_facility  = 'LOG_LOCAL0'
-  $verbose       = hiera('verbose', true) 
+  $verbose       = hiera('verbose', true)
   $debug         = hiera('debug', true)
 
 }
