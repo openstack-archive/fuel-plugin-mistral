@@ -30,3 +30,6 @@ local_settings.py
 
 # Logs
 sys_test.log
+
+# Documentation build files
+doc/user_guide/_build
