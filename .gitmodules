@@ -1,8 +1,0 @@
-[submodule "deployment_scripts/puppet/modules/mistral"]
-	path = deployment_scripts/puppet/modules/mistral
-	url = https://github.com/openstack/puppet-mistral.git
-        branch = stable/mitaka
-[submodule "plugin_test/fuel-qa"]
-	path = plugin_test/fuel-qa
-	url = https://github.com/openstack/fuel-qa.git
-        branch = stable/mitaka
